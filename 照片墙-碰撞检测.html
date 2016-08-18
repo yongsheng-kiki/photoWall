@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        ul{
+            position: relative;
+            width: 480px;
+            height: 640px;
+            padding: 5px;
+            margin: 100px auto;
+            background: #0FF;
+        }
+            li{
+                width: 150px;
+                height: 150px;
+                margin: 5px;
+                background: #FC6;
+                float: left;
+                overflow: hidden;
+                cursor: move;
+                border-radius: 5px;
+                -webkit-user-select: none;
+            }
+        img{
+            width: 150px;
+            height: 150px;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+<ul>
+    <li><img src="img/1.png" alt=""/></li>
+    <li><img src="img/2.png" alt=""/></li>
+    <li><img src="img/3.png" alt=""/></li>
+    <li><img src="img/4.png" alt=""/></li>
+    <li><img src="img/5.png" alt=""/></li>
+    <li><img src="img/6.png" alt=""/></li>
+    <li><img src="img/7.png" alt=""/></li>
+    <li><img src="img/8.png" alt=""/></li>
+    <li><img src="img/9.png" alt=""/></li>
+    <li><img src="img/10.png" alt=""/></li>
+    <li><img src="img/11.png" alt=""/></li>
+    <li><img src="img/12.png" alt=""/></li>
+</ul>
+</body>
+<script src="event1.js"></script>
+<script src="drag_oop.js"></script>
+<script src="tween.js"></script>
+<script>
+    var oLis=document.getElementsByTagName("li");
+    var zIndex=0;
+    function increaseIndex(){this.ele.style.zIndex=++zIndex}
+    function goHome(){animate(this.ele,{left:this.ele.l,top:this.ele.t},600,3)}
+    for(var i=oLis.length-1;i>=0;i--){
+        var oLi=oLis[i];
+        with (oLi.style){
+            top=(oLi.t=oLi.offsetTop)+"px";
+            left=(oLi.l=oLi.offsetLeft)+"px";
+            position="absolute";
+            margin=0;
+        }
+        new  Drag(oLi).on("dragstart",increaseIndex).on("dragend",changePosition).on("dragend",changeColor).on("dragging",test);
+    }
+
+    //碰撞检测;两两检测
+    function changeColor(){
+        for(var i=0;i<oLis.length;i++){
+            var oLi=oLis[i];
+            oLi.style.background='';
+        }
+    }
+    function  hitedTest(ele1,ele2){//如果两个元素撞上了返回true，否则返回false
+         if(ele1.offsetLeft+ele1.offsetWidth<ele2.offsetLeft||ele1.offsetTop+ele1.offsetHeight<ele2.offsetTop||ele1.offsetLeft>ele2.offsetLeft+ele2.offsetWidth||ele1.offsetTop>ele2.offsetTop+ele2.offsetHeight){
+             return false;
+         }else{
+             return true;
+         }
+    }
+
+    //进行检测
+    function test(){
+        //一共有12个li，当拖拽进行的时候，动一次，则进行一次全面的检测，把和当前被拖拽的元素撞上的另外一个元素设为绿背景，并且将其保存
+        this.aHited=[];
+        for(var i=0;i<oLis.length;i++){
+            var oLi=oLis[i];
+            if(this.ele==oLi)continue;
+            oLi.style.background='';
+            if(hitedTest(this.ele,oLi)){
+                oLi.style.background="green";
+                this.aHited.push(oLi);
+            }
+        }
+    }
+
+    function changePosition(){
+        var a=this.aHited;
+        if(a&& a.length){//不能只判断a存在，因为a是空数组也是true，但是就报错了，因为a[0]是undefined，把undefined传给animate就报错
+            //计算this.ele和a里各个元素的距离
+            for(var i=0;i< a.length;i++){
+                //把计算出来的距离保存到各个元素的自定义属性distance上
+                a[i].distance = Math.pow(this.ele.offsetTop-a[i].offsetTop,2)+Math.pow(this.ele.offsetLeft-a[i].offsetLeft,2);
+
+            }
+            a.sort(function(a,b){return a.distance- b.distance});
+            var shortEle=a[0];//排序好以后第零项就是距离最短的
+            //shortEle和this.ele交换位置
+
+            animate(shortEle,{left:this.ele.l,top:this.ele.t},700,3);
+            animate(this.ele,{left:shortEle.l,top:shortEle.t},700,4);
+            var tempL=this.ele.l;
+            var tempT=this.ele.t;
+            this.ele.l=shortEle.l;
+            this.ele.t=shortEle.t;
+            shortEle.l=tempL;
+            shortEle.t=tempT;
+            this.aHited=null;
+        }else{
+            animate(this.ele,{left:this.ele.l,top:this.ele.t},600,3);
+        }
+    }
+</script>
+</html>
